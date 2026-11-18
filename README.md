@@ -2,11 +2,13 @@
 
 **Find your first 100 customers, one film at a time.**
 
+Co-built by [Ashwin Tiwari](https://github.com/tiwaker9404) and [Jakob Volbracht](https://github.com/Jakobuus). 🏆 Winner of Zero to Hundred: GTM Vibe Coding Hackathon, San Francisco, November 2026.
+
 ![First Hundred demo: voice interview, picked companies, a film for each, and the first email](docs/media/first-hundred-demo.gif)
 
 [Watch the 35-second demo with sound](docs/media/first-hundred-demo.mp4)
 
-Winner of Zero to Hundred: GTM Vibe Coding Hackathon (Lovable and the Swedish-American Chamber of Commerce, hosted at JPMorgan Chase, San Francisco, November 2026). Built by [Ashwin Tiwari](https://github.com/tiwaker9404) and Jakob Volbracht.
+The hackathon was hosted by Lovable and the Swedish-American Chamber of Commerce at JPMorgan Chase.
 
 Every early founder gets stuck on the same question: who are my first customers, and what do I even say to them? First Hundred answers it in four steps:
 
