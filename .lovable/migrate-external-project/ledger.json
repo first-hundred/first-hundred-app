@@ -1,0 +1,7 @@
+[
+ {"capability":"UI pages (Home, Profile, Prospects, Today, Pipeline, Network)","source":"React Router SPA","outcome":"migrated to TanStack routes","status":"verified","next_action":null},
+ {"capability":"AI functions (analyze, score, draft, events, rehearse, warm)","source":"Supabase edge functions + Gemini","outcome":"server function on Lovable AI","status":"verified (analyze)","next_action":null},
+ {"capability":"HN/Reddit/Luma public search","source":"edge functions","outcome":"server function","status":"migrated","next_action":null},
+ {"capability":"coldopen films","source":"COLDOPEN_URL/COLDOPEN_API_KEY","outcome":"preserved","status":"pending","next_action":"Optional COLDOPEN_API_KEY secret for unlimited films"},
+ {"capability":"Workspace storage","source":"browser localStorage (DB table was planned, never wired)","outcome":"kept localStorage","status":"verified","next_action":"Optional: accounts + cloud save"}
+]

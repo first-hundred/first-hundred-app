@@ -1,0 +1,7 @@
+- [x] Connect selected leads to preview and preserve film/message state.
+- [x] Confirm latest synced revision and create a premium all-features demo video.
+- [x] Unify the requested screens and home with the shared pastel look.
+- [x] Show waiting tickers, including extraction on walkthrough.
+- [x] Test the UI handoff using the paste fallback and check laptop/mobile layouts; live event loading and spoken audio remain outside UI verification.
+- [x] Create and verify a short LinkedIn demo cut and winner announcement post.
+- [x] Request publishing, confirm the site responds, and provide GitHub sharing steps.
