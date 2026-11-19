@@ -50,7 +50,7 @@ Return JSON: {"subject": string, "message": string}`;
     ? `THEM: ${prospect.author} — ${prospect.excerpt}\nEVENT: ${prospect.community} (${prospect.date?.slice(0, 10)}). Both are attending. ${prospect.why_now ? `Timing: ${prospect.why_now}.` : ""}`
     : `THEIR POST (${prospect.community}, ${prospect.date?.slice(0, 10)}): "${prospect.excerpt}"`;
   const ask = isEvent
-    ? 'ask for 5 minutes at the event (e.g. "could I grab 5 minutes after the demos?")'
+    ? 'ask for 5 minutes at the event (e.g. "could I grab 5 minutes after the event?")'
     : hires
     ? 'ask for a 20-minute chat about the role, no pressure'
     : investors

@@ -14,7 +14,10 @@ const SCHEMA = `{"website": "", "pitch": "", "buyer": {"role": "", "companyType"
 export const extractInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { spend } = await import("./limits.server");
+    const over = await spend(context.userId, "ai");
+    if (over) throw new Error(over);
     const { generateResponse, GatewayError } = await import("@lovable.dev/ai-gateway");
     const text = data.transcript.map((l) => `${l.role === "founder" ? "Founder" : "Interviewer"}: ${l.text}`).join("\n");
     if (!text.trim()) return { interview: normalizeInterview({}, data.goal), error: null as string | null };
@@ -46,10 +49,10 @@ export const extractInterview = createServerFn({ method: "POST" })
     }
   });
 
-/** Called before the voice call opens: counts one interview against the user's daily limit. */
+/** Called before the voice call opens: checks the user's daily limit. */
 export const startInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { spend } = await import("./limits.server");
-    return { error: await spend(context.userId, "interview") };
+    const { peek } = await import("./limits.server");
+    return { error: await peek(context.userId, "interview") };
   });

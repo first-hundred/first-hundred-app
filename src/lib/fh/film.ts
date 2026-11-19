@@ -35,6 +35,7 @@ function salesProfile(p: CustomerProfile) {
 }
 
 export async function run(body: Body, env: Env) {
+  if (!env.COLDOPEN_API_KEY) return { disabled: true };
   const base = (env.COLDOPEN_URL || "https://coldopen-nk8o.onrender.com").replace(/\/$/, "");
   const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json" };
   if (env.COLDOPEN_API_KEY) headers.authorization = `Bearer ${env.COLDOPEN_API_KEY}`;

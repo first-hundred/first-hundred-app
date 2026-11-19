@@ -5,6 +5,14 @@ export function isDemoUrl(): boolean {
   try { return new URLSearchParams(window.location.search).get("demo") === "1"; } catch { return false; }
 }
 
+const FLAG = "first-hundred:demo";
+export function demoFlag(): boolean {
+  try { return sessionStorage.getItem(FLAG) === "1"; } catch { return false; }
+}
+export function setDemoFlag(on: boolean) {
+  try { if (on) sessionStorage.setItem(FLAG, "1"); else sessionStorage.removeItem(FLAG); } catch { /* blocked */ }
+}
+
 export function demoWorkspace(): Workspace {
   const now = new Date().toISOString();
   return {
@@ -43,7 +51,7 @@ export function demoWorkspace(): Workspace {
       },
     },
     selectedLeads: [
-      { company: "JPMorgan", url: "https://www.jpmorgan.com", why: "Jed Kaufman runs global startups and US expansion" },
+      { company: "JPMorgan", url: "https://www.jpmorgan.com", why: "Runs the startup and US expansion team" },
       { company: "ClariFi VC", url: "https://clarifi.vc", why: "Backs early B2B startups; frameworks for every portfolio call" },
       { company: "Lovable", url: "https://lovable.dev", why: "GTM team judging tonight; strategy for founders who build fast" },
     ],
