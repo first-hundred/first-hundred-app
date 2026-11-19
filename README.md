@@ -47,3 +47,7 @@ Checks: `bun run test` and `bun run build`.
 ## Credits
 
 Films by [coldopen](https://coldopen-nk8o.onrender.com), my personalized outreach film engine. Thanks to Lovable, the Swedish-American Chamber of Commerce, JPMorgan Chase, and our judges.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
