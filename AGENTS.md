@@ -47,3 +47,4 @@ use the editor.
 - Sign-in: `src/app/lib/auth.tsx` (AuthProvider in the root shell, `RequireAuth` around /leads, /preview, /walkthrough, /pipeline and the `_app` pages; the /interview start page signs in first). Home stays public.
 - Signed-in workspaces sync to `workspaces.data` (newer copy wins on load, debounced upsert) and `ws.sender` to `profiles`; signing out clears the local copy. Logic lives in `src/app/lib/store.tsx`.
 - Daily limits per user live in `src/lib/limits.server.ts` (service role, so users can't reset them): interviews (counted by `startInterview` before the call; the `/api/live` relay checks the token in `?token=`), company suggestions, films, emails, and other AI calls through `callFn`; why: AI and films run on workspace credits.
+- Demo mode (`?demo=1`, kept per tab in sessionStorage until sign-in) bypasses sign-in via `RequireAuthOrDemo` in `src/app/lib/gate.tsx` and must make no server calls; why: public example costs nothing.

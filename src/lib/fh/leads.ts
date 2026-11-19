@@ -1,3 +1,4 @@
+import { isPublicHttpUrl, safeFetch } from "./safe-url";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { geminiJSON } from "./gemini";
 
@@ -16,7 +17,8 @@ function web(value: string): string {
 }
 export async function readEvent(url: string) {
   url = /^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`;
-  const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" }, redirect: "follow" });
+  if (!isPublicHttpUrl(url)) throw new Error("Use a public HTTP or HTTPS URL.");
+  const res = await safeFetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
   if (!res.ok) throw new Error(`Event page returned ${res.status}`);
   const html = await res.text();
   const raw = html.match(/<script\b[^>]*\bid=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i)?.[1];

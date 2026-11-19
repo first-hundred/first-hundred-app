@@ -53,9 +53,12 @@ export default {
     try {
       const url = new URL(request.url);
       if (url.pathname === "/api/live") {
-        // The voice call is the costliest step: only signed-in users can open it (the interview was counted by startInterview).
-        const { userFromToken } = await import("./lib/limits.server");
-        if (!(await userFromToken(url.searchParams.get("token")))) return new Response("Sign in to start the interview.", { status: 401 });
+        // The voice call is the costliest step: only signed-in users can open it.
+        const { userFromToken, spend } = await import("./lib/limits.server");
+        const userId = await userFromToken(url.searchParams.get("token"));
+        if (!userId) return new Response("Sign in to start the interview.", { status: 401 });
+        const over = await spend(userId, "interview");
+        if (over) return new Response(over, { status: 429 });
         return handleLiveRequest(request);
       }
       const handler = await getServerEntry();

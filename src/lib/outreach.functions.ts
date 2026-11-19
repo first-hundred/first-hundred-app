@@ -35,7 +35,11 @@ export const suggestLeads = createServerFn({ method: "POST" })
 export const getRecipient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ url: z.string().min(1).max(300), name: z.string().max(120).optional(), role: z.string().max(120).optional() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (process.env.HUNTER_API_KEY) {
+      const error = await spend(context.userId, "recipient");
+      if (error) return JSON.stringify({ error });
+    }
     try {
       const { findRecipient } = await import("./fh/outreach");
       return JSON.stringify(await findRecipient(data, process.env.HUNTER_API_KEY));

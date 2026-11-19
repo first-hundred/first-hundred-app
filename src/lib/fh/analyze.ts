@@ -1,3 +1,4 @@
+import { isPublicHttpUrl, safeFetch } from "./safe-url";
 import { geminiJSON, stripHtml } from "./gemini";
 import type { CustomerProfile, Env, Goal } from "./types";
 
@@ -5,10 +6,10 @@ async function readSite(url: string): Promise<string> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 12000);
   try {
-    const res = await fetch(url, {
+    if (!isPublicHttpUrl(url)) throw new Error("Use a public HTTP or HTTPS URL.");
+  const res = await safeFetch(url, {
       signal: ctrl.signal,
       headers: { "user-agent": "Mozilla/5.0 (compatible; FirstHundredBot/0.1)", accept: "text/html" },
-      redirect: "follow",
     });
     if (!res.ok) throw new Error(`site returned ${res.status}`);
     const html = await res.text();

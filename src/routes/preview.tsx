@@ -1,4 +1,4 @@
-import { RequireAuth } from "@/app/lib/auth";
+import { RequireAuthOrDemo } from "@/app/lib/gate";
 import { createFileRoute } from "@tanstack/react-router";
 import PreviewPage from "@/app/preview/PreviewPage";
 
@@ -17,5 +17,5 @@ export const Route = createFileRoute("/preview")({
 });
 
 function GatedPreview() {
-  return <RequireAuth><PreviewPage /></RequireAuth>;
+  return <RequireAuthOrDemo><PreviewPage /></RequireAuthOrDemo>;
 }

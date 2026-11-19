@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import type { Connection, CustomerProfile, Film, Prospect, Stage } from "./types";
 import { api, type FilmDto } from "./api";
 import type { Interview } from "@/lib/interview";
-import { demoWorkspace, isDemoUrl } from "./demo";
+import { demoWorkspace, isDemoUrl, demoFlag, setDemoFlag } from "./demo";
 import { useAuth } from "./auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useRouterState } from "@tanstack/react-router";
 import type { Json } from "@/integrations/supabase/types";
 
 export type Workspace = {
@@ -35,6 +36,7 @@ function load(): Workspace {
 }
 
 type Ctx = {
+  isDemo: boolean;
   extractingInterview: boolean;
   setExtractingInterview: (pending: boolean) => void;
   ws: Workspace;
@@ -55,20 +57,40 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [extractingInterview, setExtractingInterview] = useState(false);
   // Demo mode (?demo=1) is decided once at load and saves to its own slot, so it never overwrites real data.
+  // It stays on for this tab (also across reloads) until the visitor signs in.
   const demoRef = useRef(false);
+  const [demo, setDemo] = useState(false);
+  const enterDemo = () => {
+    demoRef.current = true; setDemo(true); setDemoFlag(true);
+    let saved: Workspace | null = null;
+    try { const raw = localStorage.getItem(`${KEY}:demo`); saved = raw ? { ...empty(), ...JSON.parse(raw) } : null; } catch { /* blocked */ }
+    setWs(saved?.interview ? saved : demoWorkspace());
+  };
   useEffect(() => {
-    demoRef.current = isDemoUrl();
-    setWs(demoRef.current ? demoWorkspace() : load());
+    if (isDemoUrl() || demoFlag()) enterDemo(); else setWs(load());
     setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const href = useRouterState({ select: (s) => s.location.href });
+  useEffect(() => {
+    if (ready && !demoRef.current && isDemoUrl()) enterDemo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [href, ready]);
   useEffect(() => {
     if (!ready) return;
     try { localStorage.setItem(demoRef.current ? `${KEY}:demo` : KEY, JSON.stringify(ws)); } catch { /* storage full or blocked */ }
   }, [ws, ready]);
 
   // Signed in: the account's saved workspace wins if it is newer, and every change is saved back (debounced).
-  const { session } = useAuth();
+  const { session, ready: authReady } = useAuth();
   const userId = session?.user.id;
+  // Signing in during the example ends it and brings back the account's own workspace.
+  const sawSignedOut = useRef(false);
+  useEffect(() => {
+    if (!authReady || !demoRef.current) return;
+    if (!userId) { sawSignedOut.current = true; return; }
+    if (sawSignedOut.current) { demoRef.current = false; setDemo(false); setDemoFlag(false); setWs(load()); }
+  }, [authReady, userId]);
   const synced = useRef<string | null>(null);
   const lastUser = useRef<string | null>(null);
   useEffect(() => {
@@ -135,6 +157,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   });
   useEffect(() => {
     const tick = setInterval(async () => {
+      if (demoRef.current) return;
       const live = wsRef.current.prospects.filter((p) => p.film && (p.film.status === "queued" || p.film.status === "running") && p.film.id);
       for (const p of live) {
         try { patchFilm(p.id, fromDto(await api.filmStatus(p.film!.id))); } catch { /* try again next tick */ }
@@ -147,6 +170,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const touched = ws.prospects.filter((p) => p.stage !== "new");
     const replied = ws.prospects.filter((p) => ["replied", "call", "customer"].includes(p.stage)).length;
     return {
+      isDemo: demo,
       extractingInterview,
       setExtractingInterview,
       ws,
@@ -166,7 +190,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       startFilm: async (id, url) => {
         const p = wsRef.current.prospects.find((x) => x.id === id);
         const site = (url ?? p?.company_url ?? "").trim();
-        if (!p || !site || !wsRef.current.profile) return;
+        if (demoRef.current || !p || !site || !wsRef.current.profile) return;
         const film: Film = { id: "", status: "queued", label: "Sending to coldopen…", url: site, startedAt: new Date().toISOString() };
         setWs((w) => ({ ...w, prospects: w.prospects.map((x) => (x.id === id ? { ...x, company_url: site, film } : x)) }));
         try {
@@ -185,7 +209,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         films: ws.prospects.filter((p) => p.film?.status === "succeeded").length,
       },
     };
-  }, [ws, extractingInterview]);
+  }, [ws, extractingInterview, demo]);
 
   // Workspace lives in this browser, so pages render after it is loaded.
   return <WorkspaceCtx.Provider value={value}>{ready ? children : null}</WorkspaceCtx.Provider>;

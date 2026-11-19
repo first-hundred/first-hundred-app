@@ -46,6 +46,7 @@ export default function Home() {
           </Link>
         ))}
       </div>
+      <Link to="/leads" search={{ demo: 1 }} className="mt-8 text-sm text-grain underline-offset-4 hover:text-ink hover:underline">See an example</Link>
     </main>
   );
 }

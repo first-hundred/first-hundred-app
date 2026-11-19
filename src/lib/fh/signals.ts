@@ -28,7 +28,7 @@ async function searchHN(q: string, sinceDays: number): Promise<Candidate[]> {
 
 async function searchReddit(q: string): Promise<Candidate[]> {
   const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(q)}&sort=new&t=year&limit=25&type=link`;
-  const res = await fetch(url, { headers: { "user-agent": "web:first-hundred:0.1 (hackathon demo)" } });
+  const res = await fetch(url, { headers: { "user-agent": "web:first-hundred:0.2" } });
   if (!res.ok) throw new Error(`Reddit ${res.status}`);
   const data = await res.json();
   // deno-lint-ignore no-explicit-any
