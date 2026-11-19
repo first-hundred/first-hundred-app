@@ -1,3 +1,4 @@
+import { isPublicHttpUrl, safeFetch } from "./safe-url";
 import { geminiJSON, stripHtml } from "./gemini";
 import type { Candidate, CustomerProfile, Env, Scored } from "./types";
 
@@ -20,7 +21,8 @@ function personLink(u: any): string | undefined {
 }
 
 async function readEvent(url: string) {
-  const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; FirstHundredBot/0.1)" }, redirect: "follow" });
+  if (!isPublicHttpUrl(url)) throw new Error("Use a public HTTP or HTTPS URL.");
+  const res = await safeFetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; FirstHundredBot/0.1)" } });
   if (!res.ok) throw new Error(`event page returned ${res.status}`);
   const html = await res.text();
   const next = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
@@ -80,7 +82,7 @@ For each, use only what the page says (plus widely known facts about public orga
 - summary: one sentence on who they are, from the page
 - score 0-100: how valuable a conversation with them is for the founder's goal (direct buyer, investor or strong candidate = high; someone who can intro many buyers/investors or decides a prize = high; venue staff = low)
 - reason: one concrete sentence why talk to them, tied to the founder's company
-- why_now: short timing phrase grounded in the event (e.g. "judging the demos tonight", "hosts the event, easy intro at doors")
+- why_now: short timing phrase grounded in the event (e.g. "speaking at the event", "hosts the event, easy intro at doors")
 
 Return JSON: {"people": [...]}`;
 

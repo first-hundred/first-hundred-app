@@ -1,6 +1,6 @@
 # Demo script (3 minutes)
 
-Setup before judging (by 5:30): signed in on the live URL, workspace run for **coldopen** (paste `coldopen-nk8o.onrender.com`), this event's Luma link imported, `Connections.csv` loaded in Warm paths, and films already rendered for Anisha (First Ten Advisory), Lovable, JPM and the Chamber. Save a snapshot (download icon) as backup. Mic tested in Chrome.
+Setup before judging (by 5:30): signed in on the live URL, workspace run for **coldopen** (paste `coldopen-nk8o.onrender.com`), this event's Luma link imported, `Connections.csv` loaded in Warm paths, and films already rendered for a judge (First Ten Advisory), Lovable, JPM and the Chamber. Save a snapshot (download icon) as backup. Mic tested in Chrome.
 
 **Lovable's film:** make it from `lovable.dev/pricing`, not `lovable.dev`. The homepage blocks coldopen's reader (HTTP 403), and `docs.lovable.dev` names the company "Lovable Documentation". Backup film made today: https://coldopen-share.tiwaker9404.workers.dev/f/lovable-y6maja7jzc (29 s, square; opens on their pricing page, quotes their homepage, ends on the 57% and the ask).
 
@@ -9,9 +9,9 @@ Setup before judging (by 5:30): signed in on the live URL, workspace run for **c
 |---|---|
 | Paste URL → profile + pitch | 2–4 s (Gemini flash-lite) |
 | Online search | 100 ranked real prospects in ~20 s |
-| This event's Luma page | 19 people; Anisha Yadav ranked 95 ("judging tonight"), Jon Higginbotham / Lovable, Jed Kaufman / JPM, the Chamber (sacc-usa.org) |
-| Warm paths on Ashwin's LinkedIn export | 2,703 connections → 64 worth a message this week (52 buyers, 12 connectors) in 35 s |
-| Warm path to a judge | 5 connections at JPMorgan → intro ask for Jed |
+| This event's Luma page | 19 people; a judge ranked 95 ("judging tonight"), the Lovable GTM lead / Lovable, a JPMorgan startup lead / JPM, the Chamber (sacc-usa.org) |
+| Warm paths on Ashwin's LinkedIn export | connections worth a message this week in 35 s |
+| Warm path to a judge | 5 connections at JPMorgan → intro ask for a JPMorgan startup lead |
 | Film for Lovable | ~90 s from request to share link; MP4, poster and GIF all load |
 
 | Time | Say | Show |
@@ -20,9 +20,9 @@ Setup before judging (by 5:30): signed in on the live URL, workspace run for **c
 | 0:20 | "In a survey of 100+ startups, first customers came from personal network (51%), direct outreach (50%) and word of mouth (41%). Launch sites and paid search came last. I built coldopen first: about 300 personalized films, 57% got a reply. First Hundred is that, for founders." | — |
 | 0:40 | "Paste your URL." | Paste `coldopen-nk8o.onrender.com`. Profile and pitch appear in about 3 seconds: who buys first, their pains, the words they'd type. |
 | 0:55 | "Then we find them. Real posts from this month on Hacker News and Reddit, ranked by buying intent, each with the reason." | Prospects list (100). Open a Hot one; the message quotes their post. |
-| 1:20 | "The room you're in tonight is a list too." | Add from an event → paste this event's Luma link. 19 people appear; Anisha at the top, "judging tonight". |
-| 1:40 | "Every prospect gets a 30-second film made for their company, in their brand." | Open Jon / Lovable → play the Lovable film. |
-| 2:10 | "And the warmest path first. My own LinkedIn: 2,700 connections, 64 worth a message this week, and five people at JPMorgan who can introduce me to Jed. Warm intros get 50–80% replies; cold gets 1–5%." | Warm paths tab, then Jed's card with the intro ask. Signals stack: same event, warm path, why now. |
+| 1:20 | "The room you're in tonight is a list too." | Add from an event → paste this event's Luma link. 19 people appear; a judge at the top, "judging tonight". |
+| 1:40 | "Every prospect gets a 30-second film made for their company, in their brand." | Open the Lovable GTM lead / Lovable → play the Lovable film. |
+| 2:10 | "And the warmest path first. My own LinkedIn has people at JPMorgan who can introduce me to a JPMorgan startup lead. Warm intros get 50–80% replies; cold gets 1–5%." | Warm paths tab, then the JPMorgan startup lead's card with the intro ask. Signals stack: same event, warm path, why now. |
 | 2:35 | "It all counts up to 100." | Road to 100 (network → films → referrals, daily quota, finish date). Drag one to Customer; the bar moves. Switch the goal to First 20 investors. |
 | 2:50 | "Next: email finding, and learning which messages get replies, so a founder's tenth message is better than their first." | — |
 

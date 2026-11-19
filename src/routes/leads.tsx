@@ -1,10 +1,12 @@
-import { RequireAuth } from "@/app/lib/auth";
+import { RequireAuthOrDemo } from "@/app/lib/gate";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { suggestLeads } from "@/lib/outreach.functions";
 import { getEventLeads } from "@/lib/leads.functions";
 import { z } from "zod";
 import { useWorkspace } from "@/app/lib/store";
+import { useDemoSeed } from "@/app/lib/useDemoSeed";
+import { DemoNote } from "@/app/lib/gate";
 import { useNavigate } from "@/app/lib/router-compat";
 import { PitchPill } from "@/app/flow/PitchPanel";
 import { toAnswers } from "@/app/lib/answers";
@@ -13,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Ticker } from "@/components/look/Ticker";
 
 export const Route = createFileRoute("/leads")({
-  validateSearch: z.object({ event: z.string().optional() }),
+  validateSearch: z.object({ event: z.string().optional(), demo: z.number().optional() }),
   head: () => ({
     meta: [
       { title: "Pick companies — First Hundred" },
@@ -36,7 +38,8 @@ const parse = (v: unknown) => (typeof v === "string" ? JSON.parse(v) : v) as Rec
 const MAX_PICKS = 3;
 
 function LeadsPage() {
-  const { ws, set, extractingInterview } = useWorkspace();
+  useDemoSeed();
+  const { ws, set, extractingInterview, isDemo } = useWorkspace();
   const nav = useNavigate();
   const { event } = Route.useSearch();
   const [rows, setRows] = useState<Row[]>([]);
@@ -67,7 +70,17 @@ function LeadsPage() {
     return ((out.companies as { company: string; url: string; why: string }[]) ?? []).map((c, n) => ({ key: `s${Date.now()}${n}`, ...c, ticked: false, tag: "Suggested" as const }));
   };
 
+  // The example only shows companies already in the demo workspace; nothing is asked of the server.
   useEffect(() => {
+    if (!isDemo || asked.current || ws.prospects.length === 0) return;
+    asked.current = true;
+    add(ws.prospects.slice(0, 5).map((p) => ({ key: `d${p.id}`, company: p.company || p.author, url: p.company_url || `demo:${p.id}`, why: p.reason || p.why_now, ticked: false, tag: "Suggested" })), true);
+    setStatus("ready");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemo, ws.prospects.length]);
+
+  useEffect(() => {
+    if (isDemo) return;
     // The interview is still being read: suggest once its answers are in.
     if (asked.current || extractingInterview) return;
     asked.current = true;
@@ -144,7 +157,7 @@ function LeadsPage() {
                 </li>
               ))}
             </ul>
-            {status !== "loading" && rows.length > 0 && (ws.interview || ws.profile) && (
+            {!isDemo && status !== "loading" && rows.length > 0 && (ws.interview || ws.profile) && (
               <Button variant="bare" type="button" onClick={findMore} disabled={more} className="mt-4 text-sm text-grain hover:text-ink">{more ? "Finding more…" : "+ find more like these"}</Button>
             )}
             <div className="mt-10 space-y-6">
@@ -154,14 +167,14 @@ function LeadsPage() {
                   className="mt-1 w-full resize-none border-0 border-b border-rule bg-transparent py-2 text-lg outline-none placeholder:text-grain focus:border-ink" />
                 <Button variant="secondary" type="button" onClick={addPasted} disabled={!paste.trim()} className="mt-2">Add</Button>
               </div>
-              <div>
+              {isDemo ? <DemoNote /> : <div>
                 <label htmlFor="event" className="text-sm text-grain">Import the companies from a Luma event page</label>
                 <div className="mt-1 flex gap-3">
                   <input id="event" value={eventUrl} onChange={(e) => setEventUrl(e.target.value)} placeholder="lu.ma/your-event"
                     className="h-11 min-w-0 flex-1 border-0 border-b border-rule bg-transparent text-lg outline-none placeholder:text-grain focus:border-ink" />
                   <Button variant="secondary" type="button" onClick={() => importEvent(eventUrl)} disabled={eventBusy || !eventUrl.trim()}>{eventBusy ? "Reading…" : "Import"}</Button>
                 </div>
-              </div>
+              </div>}
               {note && <p className="text-sm text-grain" role="status">{note}</p>}
             </div>
             <div className="fixed inset-x-0 bottom-8 z-30 flex flex-col items-center gap-2">
@@ -178,5 +191,5 @@ function LeadsPage() {
 }
 
 function GatedLeads() {
-  return <RequireAuth><LeadsPage /></RequireAuth>;
+  return <RequireAuthOrDemo><LeadsPage /></RequireAuthOrDemo>;
 }

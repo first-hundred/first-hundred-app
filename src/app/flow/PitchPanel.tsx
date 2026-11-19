@@ -21,7 +21,7 @@ export function PitchPill() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-40 rounded-full bg-white/60 px-3 py-1.5 text-xs text-ink backdrop-blur hover:bg-white/80"
+        className="fixed bottom-28 left-4 z-40 sm:bottom-4 rounded-full bg-white/60 px-3 py-1.5 text-xs text-ink backdrop-blur hover:bg-white/80"
       >
         Your pitch
       </button>

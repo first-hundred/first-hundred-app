@@ -1,4 +1,4 @@
-import { RequireAuth } from "@/app/lib/auth";
+import { RequireAuthOrDemo } from "@/app/lib/gate";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "@/app/lib/store";
@@ -53,7 +53,7 @@ function Confetti({ burst }: { burst: number }) {
 
 function PipelinePage() {
   useDemoSeed();
-  const { ws, setStage, stats } = useWorkspace();
+  const { ws, setStage, stats, isDemo } = useWorkspace();
   const [over, setOver] = useState<Stage | null>(null);
   const [burst, setBurst] = useState(0);
   const prev = useRef(stats.customers);
@@ -67,7 +67,7 @@ function PipelinePage() {
   const filmIds = JSON.stringify([...new Set(ws.prospects.map((p) => p.film?.id).filter((id): id is string => Boolean(id)))]);
   useEffect(() => {
     const ids: string[] = JSON.parse(filmIds);
-    if (!ids.length) return;
+    if (!ids.length || isDemo) return;
     let active = true;
     let pulseTimer: ReturnType<typeof setTimeout> | undefined;
     const poll = async () => {
@@ -94,7 +94,7 @@ function PipelinePage() {
     void poll();
     const timer = setInterval(() => void poll(), 10000);
     return () => { active = false; clearInterval(timer); clearTimeout(pulseTimer); };
-  }, [filmIds]);
+  }, [filmIds, isDemo]);
   const pct = Math.min(100, stats.customers);
 
   return (
@@ -122,7 +122,7 @@ function PipelinePage() {
                 setStage(id, stage);
                 setOver(null);
                 const filmId = ws.prospects.find((p) => p.id === id)?.film?.id;
-                if (filmId) void setOutreach({ data: { id: filmId, stage: label } }).catch(() => {});
+                if (filmId && !isDemo) void setOutreach({ data: { id: filmId, stage: label } }).catch(() => {});
               }}
               className={`min-h-[18vh] lg:min-h-[65vh] px-4 py-5 transition-colors ${over === stage ? "bg-rule" : ""}`}>
               <h2 className="mb-4 text-xs text-grain">{label} <span className="tabular-nums">{items.length}</span></h2>
@@ -145,5 +145,5 @@ function PipelinePage() {
 }
 
 function GatedPipeline() {
-  return <RequireAuth><PipelinePage /></RequireAuth>;
+  return <RequireAuthOrDemo><PipelinePage /></RequireAuthOrDemo>;
 }

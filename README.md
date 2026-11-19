@@ -40,7 +40,15 @@ bun install
 bun run dev
 ```
 
-Server-side secrets (set in Lovable Cloud → Secrets, never committed): `COLDOPEN_URL`, `COLDOPEN_API_KEY`, and optionally `HUNTER_API_KEY` for real recipient addresses. AI calls go through the Lovable AI gateway.
+## Run your own
+
+No keys ship with the code. Connect your own services:
+
+- Lovable Cloud for the AI gateway and Supabase auth/database, or your own Supabase project with the migration in `drizzle/migrations/`.
+- coldopen for films: `COLDOPEN_URL` and `COLDOPEN_API_KEY`. Without them the app skips films and still writes emails.
+- Hunter: optional `HUNTER_API_KEY`. Without it recipients are a labelled guess.
+
+Set secrets in your hosting service. Optional `FH_PAUSED=1` pauses paid calls. `FH_UNLIMITED_USER_IDS` is a comma-separated list of users exempt from caps (the pause still applies).
 
 Checks: `bun run test` and `bun run build`.
 

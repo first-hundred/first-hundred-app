@@ -8,17 +8,20 @@ import { Ticker } from "@/components/look/Ticker";
 import { Button } from "@/components/ui/button";
 import { previewProspects, selectedProspects } from "./selection";
 import { buildGmail, withShareLink } from "./mail";
+import { DemoNote } from "../lib/gate";
 
-type Result = { started?: boolean; id?: string; status?: string; stage?: string; film?: string; poster?: string; share?: string; checked?: boolean; disabled?: boolean; error?: string; subject?: string; body?: string; to?: { name: string; role: string } | null; extrasLoaded?: boolean; email?: string; emailSource?: string; drafted?: boolean };
+type Result = { started?: boolean; id?: string; status?: string; stage?: string; film?: string; poster?: string; share?: string; checked?: boolean; disabled?: boolean; error?: string; subject?: string; body?: string; to?: { name: string; role: string } | null; extrasLoaded?: boolean; email?: string; emailSource?: string; drafted?: boolean; startedAt?: number; timedOut?: boolean };
 const decode = (value: unknown): Result => typeof value === "string" ? JSON.parse(value) : value as Result;
 const storageKey = (url: string, pitch: string) => `first-hundred:preview:v2:${encodeURIComponent(url)}:${encodeURIComponent(pitch)}`;
 
 // Films start for at most this many companies per visit; the rest wait for the next run.
 const MAX_FILMS = 3;
+// A film that has not finished this long after it started is given up on; the email still gets written.
+export const FILM_TIMEOUT_MS = 6 * 60 * 1000;
 const parse = (value: unknown) => (typeof value === "string" ? JSON.parse(value) : value) as Record<string, string | undefined>;
 
 export default function PreviewPage() {
-  const { ws, set, updateProspect, setStage } = useWorkspace();
+  const { ws, set, updateProspect, setStage, isDemo } = useWorkspace();
   const selected = useMemo(() => selectedProspects(ws.selectedLeads ?? [], ws.prospects), [ws.selectedLeads, ws.prospects]);
   useEffect(() => {
     if (!selected.length || selected.every((p) => ws.prospects.some((x) => x.id === p.id && x.ticked && x.company === p.company && x.reason === p.reason))) return;
@@ -32,6 +35,7 @@ export default function PreviewPage() {
   const busy = useRef(new Set<string>());
   const pitch = JSON.stringify(ws.interview ?? ws.profile ?? {});
   useEffect(() => {
+    if (isDemo) return;
     let stopped = false;
     const tick = async () => {
       for (const lead of leads) {
@@ -47,7 +51,7 @@ export default function PreviewPage() {
             if (!stopped) {
               setResults((old) => ({ ...old, [key]: next }));
               const prospect = prospects.find((p) => p.company_url === lead.url);
-              if (prospect && next.id) updateProspect(prospect.id, { film: { id: next.id, status: next.status === "succeeded" || next.status === "failed" || next.status === "cancelled" ? next.status : "running", url: lead.url, startedAt: prospect.film?.startedAt ?? new Date().toISOString(), film: next.film, poster: next.poster, share: next.share } });
+              if (prospect && next.id) updateProspect(prospect.id, { film: { id: next.id, status: next.timedOut ? "failed" : next.status === "succeeded" || next.status === "failed" || next.status === "cancelled" ? next.status : "running", url: lead.url, startedAt: prospect.film?.startedAt ?? new Date().toISOString(), film: next.film, poster: next.poster, share: next.share } });
             }
           };
           if (!result.started && !result.id && leads.findIndex((l) => l.url === lead.url) >= MAX_FILMS) {
@@ -58,9 +62,12 @@ export default function PreviewPage() {
           if (!result.started && !result.id && !result.disabled && !result.error) {
             save({ ...result, started: true });
             const created = decode(await startFilm({ data: { url: lead.url, company: lead.company, interview: ws.interview, profile: ws.profile ?? undefined, sender: ws.sender } }));
-            save({ ...created, started: true });
+            save({ ...created, started: true, startedAt: Date.now() });
           }
-          if (result.id && !result.disabled && result.status !== "failed" && result.status !== "cancelled" && (result.status !== "succeeded" || !result.film)) {
+          if (result.id && !result.timedOut && result.status !== "succeeded" && result.status !== "failed" && result.status !== "cancelled" && Date.now() - (result.startedAt ?? (Date.parse(prospects.find((p) => p.company_url === lead.url)?.film?.startedAt ?? "") || Date.now())) > FILM_TIMEOUT_MS) {
+            save({ ...result, timedOut: true });
+          }
+          if (result.id && !result.timedOut && !result.disabled && result.status !== "failed" && result.status !== "cancelled" && (result.status !== "succeeded" || !result.film)) {
             const state = decode(await filmState({ data: { id: result.id } }));
             save({ ...result, ...state });
           }
@@ -69,7 +76,7 @@ export default function PreviewPage() {
             save({ ...result, ...(!extras.error && !extras.disabled ? extras : {}), extrasLoaded: true });
           }
           // Once the film is ready (or can't be made): find who to write to, then write the email from the founder's own answers.
-          if (!result.drafted && ((result.id && result.status === "succeeded" && result.extrasLoaded) || result.disabled || result.status === "failed" || result.status === "cancelled")) {
+          if (!result.drafted && ((result.id && result.status === "succeeded" && result.extrasLoaded) || result.disabled || result.timedOut || result.status === "failed" || result.status === "cancelled")) {
             const picked = ws.selectedLeads?.find((l) => l.url === lead.url);
             const name = result.to?.name || picked?.name || "";
             const rec = parse(await getRecipient({ data: { url: lead.url, ...(name ? { name } : {}), ...(result.to?.role ? { role: result.to.role } : {}) } }));
@@ -91,7 +98,7 @@ export default function PreviewPage() {
     void tick();
     const timer = setInterval(() => void tick(), 3000);
     return () => { stopped = true; clearInterval(timer); };
-  }, [JSON.stringify(leads), pitch]);
+  }, [JSON.stringify(leads), pitch, isDemo]);
 
   const currentIndex = Math.min(index, Math.max(0, leads.length - 1));
   const lead = leads[currentIndex];
@@ -118,7 +125,7 @@ export default function PreviewPage() {
             {ready ? <video key={result.film} src={result.film} poster={result.poster} controls playsInline autoPlay muted className="h-full w-full object-cover" /> : <>
               <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/50 via-transparent to-white/30 [animation-duration:2.4s]" />
               <div className="relative px-8 text-center">
-                {result.status === "failed" || result.error ? <p className="text-sm text-grain">{result.error?.endsWith("per run for now") ? `${result.error}. Come back for the rest.` : "Film unavailable"}</p> : <Ticker phase="films" inline />}
+                {isDemo ? <DemoNote /> : result.timedOut ? <p className="text-sm text-grain">This film is taking too long. Your email is ready below.</p> : result.status === "failed" || result.error ? <p className="text-sm text-grain">{result.error?.endsWith("per run for now") ? `${result.error}. Come back for the rest.` : "Film unavailable"}</p> : <Ticker phase="films" inline />}
               </div>
             </>}
           </div>
